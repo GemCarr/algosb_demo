@@ -26,10 +26,7 @@ coords_2d = np.column_stack((X.ravel(), Y.ravel()))
 def marginalize(mm, dims):
     new_components = []
     for c in mm.components :
-        marginals = [c.marginal_distributions[i] for i in dims]
-        qs = [c.qs[i] for i in dims]
-        rhos = [c.rhos[i] for i in dims]
-        new_components.append(CBMD.Wrapped_cauchy_CBMD(marginals, qs, rhos))
+        new_components.append(c.marginalize(dims))
     return CBMD.Mixture_model(new_components, mm.weights)
 
 

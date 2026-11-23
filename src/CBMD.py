@@ -257,7 +257,13 @@ class Wrapped_cauchy_CBMD(Distribution) :
             sample.append(marg_sample)
 
         return np.column_stack(sample)
-
+    
+    def marginalize(self, dims):
+        marginals = [self.marginal_distributions[i] for i in dims]
+        qs = [self.qs[i] for i in dims]
+        rhos = [self.rhos[i] for i in dims]
+        return Wrapped_cauchy_CBMD(marginals, qs, rhos)
+ 
 
 
 class Mixture_model(Distribution) :
