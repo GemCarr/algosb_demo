@@ -23,5 +23,4 @@ Thumbs.db
 .env.*
 !.env.example
 
-default/
-helix_transition/
+SERALA_*sample/
