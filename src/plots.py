@@ -5,6 +5,7 @@ import copy
 import os
 import math
 import subprocess
+from pathlib import Path
 
 
 import py3Dmol
@@ -166,7 +167,7 @@ def plot_serine_rotamer(mm, sample):
     for angle in sample:
         ax.plot([angle, angle], [R, R + 0.15], color="red", linewidth=1.5, alpha=0.8)
 
-def make_serala_pdbs(sample, dirname):
+def make_serala_pdbs(sample, dirname, aligner_script_path):
         
     i = 0
     for torsion_angles in sample:
@@ -209,20 +210,18 @@ def make_serala_pdbs(sample, dirname):
         io.save(dirname + "/observation" + str(i) + ".pdb")
           
         if i > 0:
-            
-            command = ["python", "sbl-pdb-align.py", "-f", dirname + "/observation0.pdb", dirname + "/observation" + str(i) + ".pdb", "--range", "2", "2"]
+            command = ["python", Path(aligner_script_path).resolve(), "-f", dirname + "/observation0.pdb", dirname + "/observation" + str(i) + ".pdb", "--range", "2", "2"]
             
             with open(os.devnull, "w") as fnull:
                 subprocess.call(command, stdout = fnull, stderr = fnull)
-            #os.system("python sbl-pdb-align.py -f " + dirname + "/observation0.pdb " + dirname + "/observation" + str(i) + ".pdb --range 2 2> /dev/null")
             
         i+=1
     os.rename(dirname + "/observation0.pdb", dirname + "/observation0-aligned.pdb")
     
 
-def visualize_serala_sample(sample, dirname):
+def visualize_serala_sample(sample, dirname, aligner_script_path):
     os.makedirs(dirname, exist_ok=True)
-    make_serala_pdbs(sample, dirname)
+    make_serala_pdbs(sample, dirname, aligner_script_path)
 
     view = py3Dmol.view(width=500, height=500)
     

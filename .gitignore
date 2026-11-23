@@ -23,4 +23,5 @@ Thumbs.db
 .env.*
 !.env.example
 
-SERALA_*sample/
+notebooks/SERALA_*sample/
+notebooks/results
