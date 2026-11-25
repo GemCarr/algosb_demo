@@ -37,12 +37,12 @@ from IPython.display import HTML, Image, Markdown, display
 DEFAULT_PLOT_STYLE: dict = {
     "figsize":          "6x4",
     "dpi":              150,
-    "font_size":        8,
+    "font_size":        12,
     "title_size":       10,
-    "label_size":       8,
-    "tick_size":        8,
-    "marker_size":      2,
-    "line_width":       0.5,
+    "label_size":       12,
+    "tick_size":        12,
+    "marker_size":      6,
+    "line_width":       2,
     "hide_xticklabels": True,
 }
 
@@ -597,7 +597,7 @@ class ConformationalEnsembleKmeansppRunner:
 
             # Mark the auto-detected elbow.
             if suggested_k is not None and suggested_k != chosen_k:
-                ax.axvline(x=suggested_k, color="seagreen", linewidth=lw,
+                ax.axvline(x=suggested_k, color="tomato", linewidth=lw,
                            linestyle=":", alpha=0.9,
                            label=f"suggested k={suggested_k}")
                 ax.legend(fontsize=font_size)
@@ -1215,7 +1215,7 @@ class ConformationalEnsembleKmeansppRunner:
         Returns a dict ``{"result": MDSResult, "plotter": MDSPlotter,
         "odir": Path, "figures": [Path, ...]}``.
         """
-        from SBL.MDS_plots import MDSResult, MDSPlotter, MDSPlotStyle
+        from .MDS_plots import MDSResult, MDSPlotter, MDSPlotStyle
 
         odir = Path(mds_run["odir"]).resolve()
         result = MDSResult.from_directory(str(odir))

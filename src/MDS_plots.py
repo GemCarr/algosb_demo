@@ -5,7 +5,7 @@ Classes
 -------
 MDSPlotStyle  — figure size, dpi, and styling for MDS plots
 MDSResult     — holds spectra + 2D/3D embeddings loaded from CSVs
-MDSPlotter    — produces scree, 2D / 3D embedding, and 2D heatmap figures
+MDSPlotter    — produces scree, 2D / 3D embedding
 """
 
 import csv
@@ -41,8 +41,6 @@ class MDSPlotStyle:
         Prefix used for sequential landmark annotations in embedding plots.
     reference_marker, reference_marker_size, reference_color
         Style for named non-landmark experiment points.
-    sample_heatmap_bins, sample_heatmap_cmap
-        Style for the 2D sample heatmap.
     xlim, ylim : tuple(float, float), str, or None
         Optional axis limits for the 2D embedding plot. Strings may use
         "min,max" or "min:max".
@@ -63,8 +61,6 @@ class MDSPlotStyle:
                  reference_marker="D",
                  reference_marker_size=55,
                  reference_color="C2",
-                 sample_heatmap_bins=80,
-                 sample_heatmap_cmap="Blues",
                  xlim=None,
                  ylim=None,
                  font_size=10.0,
@@ -83,8 +79,6 @@ class MDSPlotStyle:
         self.reference_marker = reference_marker
         self.reference_marker_size = reference_marker_size
         self.reference_color = reference_color
-        self.sample_heatmap_bins = sample_heatmap_bins
-        self.sample_heatmap_cmap = sample_heatmap_cmap
         self.xlim = _normalize_axis_limit(xlim, "xlim")
         self.ylim = _normalize_axis_limit(ylim, "ylim")
         self.font_size = font_size
@@ -300,22 +294,8 @@ def _histogram_range(X, style):
         y_range = (y_min, y_max)
     return [x_range, y_range]
 
-
-def _sample_heatmap(X, sample_mask, style):
-    pts = X[sample_mask]
-    if pts.size == 0:
-        return (np.zeros((0, 0), dtype=float),
-                np.asarray([], dtype=float),
-                np.asarray([], dtype=float))
-    return np.histogram2d(
-        pts[:, 0], pts[:, 1],
-        bins=style.sample_heatmap_bins,
-        range=_histogram_range(pts, style)
-    )
-
-
 class MDSPlotter:
-    """Produce scree, embedding, heatmap, and replot data from an MDSResult."""
+    """Produce scree, embedding, and replot data from an MDSResult."""
 
     def __init__(self, result, style=None, reference_labels=None):
         self.result = result
@@ -358,12 +338,12 @@ class MDSPlotter:
             ax2.tick_params(axis="y", labelcolor="C2")
 
         denom = np.abs(eigenvalues).sum()
-        if denom > 0 and np.isfinite(denom):
-            negative_mass = np.abs(eigenvalues[eigenvalues < 0].sum()) / denom
-            ax1.text(0.02, 0.02,
-                     f"negative mass: {100.0 * negative_mass:.2f}%",
-                     transform=ax1.transAxes, fontsize=st.tick_size,
-                     va="bottom", ha="left")
+        #if denom > 0 and np.isfinite(denom):
+        #    negative_mass = np.abs(eigenvalues[eigenvalues < 0].sum()) / denom
+        #    ax1.text(0.02, 0.02,
+        #             f"negative mass: {100.0 * negative_mass:.2f}%",
+        #             transform=ax1.transAxes, fontsize=st.tick_size,
+        #             va="bottom", ha="left")
 
         st.apply_to_axes(ax1)
         fig.tight_layout()
@@ -497,53 +477,6 @@ class MDSPlotter:
         fig.savefig(out_path)
         plt.close(fig)
 
-    def plot_embedding_2d_heatmap(self, out_path, show_labels=False):
-        st = self.style
-        labels, X, is_lm = self.result.labels_2d, self.result.X2, self.result.is_landmark_2d
-        fig, ax = plt.subplots(figsize=st.figsize or (6, 6), dpi=st.dpi)
-        sample_mask, landmark_mask, reference_mask = _point_masks(
-            labels, is_lm, self.reference_labels
-        )
-        counts, x_edges, y_edges = _sample_heatmap(X, sample_mask, st)
-        if counts.size:
-            cmap = plt.get_cmap(st.sample_heatmap_cmap).copy()
-            cmap.set_bad(alpha=0.0)
-            masked_counts = np.ma.masked_where(counts.T <= 0, counts.T)
-            mesh = ax.pcolormesh(x_edges, y_edges, masked_counts,
-                                 cmap=cmap, shading="auto")
-            cbar = fig.colorbar(mesh, ax=ax)
-            cbar.set_label("sample count", fontsize=st.label_size)
-            cbar.ax.tick_params(labelsize=st.tick_size)
-        lms = X[landmark_mask]
-        refs = X[reference_mask]
-        if lms.size:
-            ax.scatter(lms[:, 0], lms[:, 1],
-                       s=st.landmark_marker_size, c=st.landmark_color,
-                       marker=st.landmark_marker,
-                       edgecolors="k", linewidths=0.5, label="seeding")
-        if refs.size:
-            ax.scatter(refs[:, 0], refs[:, 1],
-                       s=st.reference_marker_size, c=st.reference_color,
-                       marker=st.reference_marker,
-                       edgecolors="k", linewidths=0.5, label="experiment")
-        if show_labels:
-            label_mask = landmark_mask | reference_mask
-            for index, (lab, (x, y), tag) in enumerate(zip(labels, X, label_mask)):
-                if tag:
-                    display_label = _plot_label(
-                        lab, index, landmark_mask, reference_mask, st
-                    )
-                    ax.annotate(display_label, (x, y), fontsize=7,
-                                xytext=(3, 3), textcoords="offset points")
-        ax.set_xlabel(self._axis_label(0))
-        ax.set_ylabel(self._axis_label(1))
-        _apply_2d_aspect_and_limits(ax, st)
-        if lms.size or refs.size:
-            ax.legend(loc="best", fontsize=8)
-        st.apply_to_axes(ax)
-        fig.tight_layout()
-        fig.savefig(out_path)
-        plt.close(fig)
 
     def _write_embedding_plot_data(self, out_path, labels, X, is_lm):
         sample_mask, landmark_mask, reference_mask = _point_masks(
@@ -595,15 +528,6 @@ class MDSPlotter:
             self.result.is_landmark_2d,
             self.reference_labels,
         )
-        counts, x_edges, y_edges = _sample_heatmap(
-            self.result.X2, sample_mask, self.style
-        )
-        np.savez_compressed(
-            os.path.join(out_dir, "embedding_2d_heatmap_data.npz"),
-            sample_counts=counts,
-            x_edges=x_edges,
-            y_edges=y_edges,
-        )
         metadata = {
             "legend_labels": {
                 "sample": "sample",
@@ -614,7 +538,6 @@ class MDSPlotter:
             "axis_labels_2d": [self._axis_label(0), self._axis_label(1)],
             "scree_plot_data": "scree_plot_data.csv",
             "embedding_2d_plot_data": "embedding_2d_plot_data.csv",
-            "embedding_2d_heatmap_data": "embedding_2d_heatmap_data.npz",
             "style": {
                 "figsize": self.style.figsize,
                 "dpi": self.style.dpi,
@@ -624,8 +547,6 @@ class MDSPlotter:
                 "landmark_marker_size": self.style.landmark_marker_size,
                 "reference_marker": self.style.reference_marker,
                 "reference_marker_size": self.style.reference_marker_size,
-                "sample_heatmap_bins": self.style.sample_heatmap_bins,
-                "sample_heatmap_cmap": self.style.sample_heatmap_cmap,
                 "xlim": self.style.xlim,
                 "ylim": self.style.ylim,
             },
@@ -651,10 +572,7 @@ class MDSPlotter:
         self.plot_scree(os.path.join(out_dir, f"scree.{fmt}"))
         self.plot_embedding_2d(os.path.join(out_dir, f"embedding_2d.{fmt}"),
                                show_labels=show_labels)
-        self.plot_embedding_2d_heatmap(
-            os.path.join(out_dir, f"embedding_2d_heatmap.{fmt}"),
-            show_labels=show_labels
-        )
+        
         if self.result.has_3d:
             self.plot_embedding_3d(os.path.join(out_dir, f"embedding_3d.{fmt}"),
                                    show_labels=show_labels)
