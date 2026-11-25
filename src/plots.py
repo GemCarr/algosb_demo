@@ -88,7 +88,7 @@ def plot_serala_sample(mm, sample):
     axs[1].scatter(large_sample[:,3], large_sample[:,1], c="gray",  s=0.1, alpha=0.7, rasterized=True)
     axs[1].scatter(sample[:,3], sample[:,1], c="red", marker='x', s=5, rasterized=True)
 
-    plot_single_model(axs[2], mm, 3, 4, "phi2", "psi1")
+    plot_single_model(axs[2], mm, 3, 4, "phi2", "psi2")
     axs[2].scatter(large_sample[:,3], large_sample[:,4], c="gray",  s=0.1, alpha=0.7, rasterized=True)
     axs[2].scatter(sample[:,3], sample[:,4], c="red", marker='x', s=5, rasterized=True)
 
@@ -115,8 +115,8 @@ def plot_serala_data(data):
     axs[1].tick_params(axis="both", which="major")
     axs[1].set_xticks([-3,-2,-1,0,1,2,3])
     axs[1].set_yticks([-3,-2,-1,0,1,2,3])
-    axs[0].set_xlabel("phi2")
-    axs[0].set_ylabel("psi1")
+    axs[1].set_xlabel("phi2")
+    axs[1].set_ylabel("psi1")
     axs[1].set_aspect('equal', adjustable='box')
 
     axs[2].scatter(data[:,3], data[:,4], c="blue", marker='x', s=0.1, alpha=0.7, rasterized=True)
@@ -125,8 +125,8 @@ def plot_serala_data(data):
     axs[2].tick_params(axis="both", which="major")
     axs[2].set_xticks([-3,-2,-1,0,1,2,3])
     axs[2].set_yticks([-3,-2,-1,0,1,2,3])
-    axs[0].set_xlabel("phi2")
-    axs[0].set_ylabel("psi2")
+    axs[2].set_xlabel("phi2")
+    axs[2].set_ylabel("psi2")
     axs[2].set_aspect('equal', adjustable='box')
 
     plt.show()
