@@ -18,6 +18,7 @@ This notebook illustrates how can proteins conformations can be clustered with k
 ## Installation
 
 ```bash
+git clone https://github.com/GemCarr/algosb_demo.git
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
